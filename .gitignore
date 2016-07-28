@@ -1,0 +1,58 @@
+#ignore sqlite3
+*.sqlite3
+
+#python bytecode
+__pycache__/
+*.py[cod]
+
+#test stuff
+.tox/
+.coverage
+.cache/
+coverage.xml
+*junit.xml
+htmlcov
+venv
+.sonar
+.pytest/
+# sometimes when tests aborted, these files might appear
+core.*
+
+#pip stuff
+pip-log.txt
+.pipcache
+
+#mac stuff
+.DS_Store
+
+#editor stuff
+*.swp
+.tags
+
+#static files
+/static
+src/static/
+var/
+
+#pyCharm stuff
+.idea/
+.nfs*
+
+# covers
+*,cover
+
+acorn/radetska
+
+# applog things
+*.err
+*.log
+*.perf
+*.trace
+
+# decouple settings
+.env
+
+# eggs
+.eggs/
+*.egg-info
+src/journals/journals.egg-info
