@@ -49,7 +49,7 @@ def handle_command(command, channel):
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    response = "Not sure what you mean."
+    response = "Not sure what you mean. Supported animals: otter and bunny."
     command_found = False
     for key in FEEDS.keys():
         if key in command:
