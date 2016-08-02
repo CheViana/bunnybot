@@ -56,3 +56,4 @@ acorn/radetska
 .eggs/
 *.egg-info
 src/journals/journals.egg-info
+nohup.out
