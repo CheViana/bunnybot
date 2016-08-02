@@ -41,8 +41,6 @@ var/
 # covers
 *,cover
 
-acorn/radetska
-
 # applog things
 *.err
 *.log
@@ -55,5 +53,6 @@ acorn/radetska
 # eggs
 .eggs/
 *.egg-info
-src/journals/journals.egg-info
+
+
 nohup.out

@@ -1,32 +1,39 @@
-import os
 import time
 import requests
-import json
 from slackclient import SlackClient
 from lxml import html
-from lxml.etree import tostring
 from datetime import datetime
 from random import randint, choice
+from decouple import config
 
 
-BOT_NAME = 'bunnybot'
 FEEDS = {
     'bunny': 'http://dailybunny.org/feed/',
     'otter': 'http://dailyotter.org/feed/'
 }
 
+# list of env vars that should be defined:
 
-# starterbot's ID as an environment variable
-BOT_ID = os.environ.get("BOT_ID")
+# BOT_ID
+# SLACK_BOT_TOKEN
+# BOT_NAME
+#
+
+
+# bot's ID as an environment variable
+BOT_ID = config('BOT_ID')
+
+# bot name as env var
+BOT_NAME = config('BOT_NAME')
 
 # constants
-AT_BOT = "<@" + BOT_ID + ">:"
+AT_BOT = '<@' + BOT_ID + '>:'
 
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+slack_client = SlackClient(config('SLACK_BOT_TOKEN'))
 
 
 def post_latest_item():
-    api_call = slack_client.api_call("channels.list")
+    api_call = slack_client.api_call('channels.list')
     if api_call.get('ok'):
 
         bunny_or_otter = 'bunny' if choice([True, False]) else 'otter'
@@ -39,34 +46,34 @@ def post_latest_item():
 
         for chat in joined_channels:
             print('posting to {}'.format(chat.get('name')))
-            slack_client.api_call("chat.postMessage", channel=chat.get('id'),
+            slack_client.api_call('chat.postMessage', channel=chat.get('id'),
                                   text=msg, as_user=True)
 
 
 def handle_command(command, channel):
-    """
+    '''
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
-    """
-    response = "Not sure what you mean. Supported animals: otter and bunny."
+    '''
+    response = 'Not sure what you mean. Supported animals: otter and bunny.'
     command_found = False
     for key in FEEDS.keys():
         if key in command:
             command_found = True
             print('command ' + key)
             response = random_rss_item(FEEDS[key])
-            slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+            slack_client.api_call('chat.postMessage', channel=channel, text=response, as_user=True)
     if not command_found:
-        slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+        slack_client.api_call('chat.postMessage', channel=channel, text=response, as_user=True)
 
 
 def parse_slack_output(slack_rtm_output):
-    """
+    '''
         The Slack Real Time Messaging API is an events firehose.
         this parsing function returns None unless a message is
         directed at the Bot, based on its ID.
-    """
+    '''
     output_list = slack_rtm_output
     if output_list and len(output_list) > 0:
         for output in output_list:
@@ -86,6 +93,8 @@ def feed(feed_url):
 
 def msg_from_item(item):
     title = item.find('title').text
+
+    # just find img?
     image_src = item.find('encoded').find('img').get('src')
     return '{} {}'.format(title, image_src)
 
@@ -104,10 +113,10 @@ def random_rss_item(feed_url):
     return msg_from_item(random_item)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
-        print("{} connected and running!".format(BOT_NAME))
+        print('{} connected and running!'.format(BOT_NAME))
         posted_today = False
         post_time = (12, 0)
         reset_time = (11, 50)
@@ -122,7 +131,7 @@ if __name__ == "__main__":
             timestamp = datetime.now().time()
 
             if not posted_today and (timestamp.hour, timestamp.minute) == post_time:
-                print('time to post a bunny!')
+                print('time for daily post!')
                 post_latest_item()
                 posted_today = True
 
@@ -131,4 +140,4 @@ if __name__ == "__main__":
 
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
-        print("Connection failed. Invalid Slack token or bot ID?")
+        print('Connection failed. Invalid Slack token or bot ID?')
