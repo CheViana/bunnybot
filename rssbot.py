@@ -5,19 +5,16 @@ from lxml import html
 from datetime import datetime
 from random import randint, choice
 from decouple import config
+import json
 
-
-FEEDS = {
-    'bunny': 'http://dailybunny.org/feed/',
-    'otter': 'http://dailyotter.org/feed/'
-}
 
 # list of env vars that should be defined:
 
-# BOT_ID
-# SLACK_BOT_TOKEN
-# BOT_NAME
-#
+# BOT_ID: str
+# SLACK_BOT_TOKEN: str
+# BOT_NAME: str
+# FEEDS: json with dict[str, str], where key is feed name and value is feed url
+# FEEDS example: {"bunny": "http://dailybunny.org/feed/", "otter": "http://dailyotter.org/feed/"}
 
 
 # bot's ID as an environment variable
@@ -25,6 +22,9 @@ BOT_ID = config('BOT_ID')
 
 # bot name as env var
 BOT_NAME = config('BOT_NAME')
+
+# rss feed store
+FEEDS = config('FEEDS', cast=lambda json_input: json.loads(json_input))
 
 # constants
 AT_BOT = '<@' + BOT_ID + '>:'
@@ -36,12 +36,14 @@ def post_latest_item():
     api_call = slack_client.api_call('channels.list')
     if api_call.get('ok'):
 
-        bunny_or_otter = 'bunny' if choice([True, False]) else 'otter'
-        msg = latest_rss_item(FEEDS[bunny_or_otter])
-        print('composed random {} msg'.format(bunny_or_otter))
+        # select random animal
+        animal = choice(FEEDS.keys())
+
+        # use latest img from that animal's feed
+        msg = latest_rss_item(FEEDS[animal])
+        print('composed random {} msg'.format(animal))
 
         channels = api_call.get('channels')
-        print('received channels list')
         joined_channels = [ch for ch in channels if ch.get('is_member')]
 
         for chat in joined_channels:
@@ -51,12 +53,12 @@ def post_latest_item():
 
 
 def handle_command(command, channel):
-    '''
+    """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
-    '''
-    response = 'Not sure what you mean. Supported animals: otter and bunny.'
+    """
+    response = 'Not sure what you mean. Supported animals: {}.'.format(', '.join(FEEDS.keys()))
     command_found = False
     for key in FEEDS.keys():
         if key in command:
@@ -69,11 +71,11 @@ def handle_command(command, channel):
 
 
 def parse_slack_output(slack_rtm_output):
-    '''
+    """
         The Slack Real Time Messaging API is an events firehose.
         this parsing function returns None unless a message is
         directed at the Bot, based on its ID.
-    '''
+    """
     output_list = slack_rtm_output
     if output_list and len(output_list) > 0:
         for output in output_list:
