@@ -37,7 +37,7 @@ def post_latest_item():
     if api_call.get('ok'):
 
         # select random animal
-        animal = choice(FEEDS.keys())
+        animal = choice(list(FEEDS.keys()))
 
         # use latest img from that animal's feed
         msg = latest_rss_item(FEEDS[animal])
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     if slack_client.rtm_connect():
         print('{} connected and running!'.format(BOT_NAME))
         posted_today = False
-        post_time = (12, 0)
+        post_time = (12, 1)
         reset_time = (11, 50)
 
         while True:
